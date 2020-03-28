@@ -13,7 +13,9 @@ from azureml.contrib.dataset import FileHandlingOption, LabeledDatasetTask
 run = Run.get_context()
 
 # get input dataset by name
-labeled_dataset = run.input_datasets['crack_labels']
+#labeled_dataset = run.input_datasets['crack_labels']
+labeled_dataset = run.input_datasets['dalatalabelproj-animals-2020-03-22 15:24:17']
+
 pytorch_dataset = labeled_dataset.to_torchvision()
 
 
@@ -21,10 +23,10 @@ indices = torch.randperm(len(pytorch_dataset)).tolist()
 dataset_train = torch.utils.data.Subset(pytorch_dataset, indices[:40])
 dataset_test = torch.utils.data.Subset(pytorch_dataset, indices[-10:])
 
-trainloader = torch.utils.data.DataLoader(dataset_train, batch_size=4,
+trainloader = torch.utils.data.DataLoader(dataset_train, batch_size=1,
                                           shuffle=True, num_workers=0)
 
-testloader = torch.utils.data.DataLoader(dataset_test, batch_size=4,
+testloader = torch.utils.data.DataLoader(dataset_test, batch_size=1,
                                          shuffle=True, num_workers=0)
 
 
@@ -34,14 +36,14 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 71 * 71, 120)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(x.size(0), 16 * 71 * 71)
+        x = x.view(-1, 16 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
